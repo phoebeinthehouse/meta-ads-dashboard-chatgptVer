@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta Ads Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--lina:#378ADD;--phoebe:#D4537E;--sarah:#1D9E75;--bg:#F7F6F2;--surface:#FFF;--surface2:#F1EFE8;--border:rgba(0,0,0,0.08);--text:#1a1a18;--muted:#888780;--radius:12px;--radius-sm:8px;}
+@media(prefers-color-scheme:dark){:root{--bg:#18181A;--surface:#232325;--surface2:#2C2C2E;--border:rgba(255,255,255,0.08);--text:#F1EFE8;}}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.nav{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:.5px solid var(--border);padding:0 1.5rem;}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;flex-wrap:wrap;}
+.nav-logo{font-size:14px;font-weight:600;padding:14px 0;margin-right:1.5rem;white-space:nowrap;}
+.nav-logo span{color:var(--muted);font-weight:400;}
+.nav-tab{padding:14px 16px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border:none;background:transparent;font-family:inherit;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--text);}
+
+/* DATE FILTER BAR */
+.date-bar{background:var(--surface);border-bottom:.5px solid var(--border);padding:8px 1.5rem;}
+.date-bar-inner{max-width:1200px;margin:0 auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.date-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:2px;white-space:nowrap;}
+.mpill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;transition:all .15s;}
+.mpill.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+.date-sep{width:1px;height:18px;background:var(--border);margin:0 4px;}
+.custom-range{display:flex;align-items:center;gap:6px;}
+.date-input{padding:4px 10px;border-radius:var(--radius-sm);border:.5px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none;}
+.date-input:focus{border-color:var(--text);}
+.apply-btn{padding:4px 14px;border-radius:var(--radius-sm);background:var(--text);color:var(--bg);font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.date-mode-tabs{display:flex;gap:4px;background:var(--surface2);border-radius:var(--radius-sm);padding:2px;}
+.dmt{padding:3px 12px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:inherit;transition:all .15s;text-transform:uppercase;letter-spacing:.04em;}
+.dmt.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+
+.pg{max-width:1200px;margin:0 auto;padding:1.75rem 1.5rem;display:none;}
+.pg.active{display:block;}
+.top-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem;flex-wrap:wrap;gap:12px;}
+.top-bar h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.top-meta{font-size:12px;color:var(--muted);margin-top:4px;}
+.mtabs{display:flex;gap:4px;background:var(--surface2);border-radius:var(--radius-sm);padding:3px;}
+.tab{padding:5px 14px;border-radius:6px;font-size:13px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:inherit;font-weight:500;transition:all .15s;}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.slabel{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.pgrid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:1.75rem;}
+@media(max-width:640px){.pgrid3{grid-template-columns:1fr;}}
+.pcard{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0;}
+.pname{font-size:15px;font-weight:600;}.prank{font-size:11px;color:var(--muted);margin-top:1px;}
+.srow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+.st{background:var(--surface2);border-radius:var(--radius-sm);padding:8px 10px;}
+.stl{font-size:10px;color:var(--muted);margin-bottom:2px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;}
+.stv{font-size:15px;font-weight:600;}.stv.good{color:#0F6E56;}.stv.sm{font-size:12px;}
+.mlabels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;margin-top:4px;}
+.btrack{background:var(--surface2);border-radius:4px;height:7px;overflow:hidden;}
+.bfill{height:100%;border-radius:4px;}
+.ccard{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.25rem;}
+.ctop{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px;}
+.ctitle{font-size:14px;font-weight:600;}
+.leg{display:flex;gap:14px;flex-wrap:wrap;}
+.li{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);}
+.ld{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;padding:6px 8px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:.5px solid var(--border);white-space:nowrap;}
+td{padding:8px 8px;border-bottom:.5px solid var(--border);color:var(--text);white-space:nowrap;}
+tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
+.bdg{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;}
+.bvdo{background:#E6F1FB;color:#0C447C;}.bimg{background:#FAEEDA;color:#633806;}
+.pp{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:500;}
+.psgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.5rem;}
+@media(max-width:700px){.psgrid{grid-template-columns:repeat(2,1fr);}}
+.pscard{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem;}
+.psname{font-size:16px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
+.pml{font-size:10px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-top:4px;}
+.pmv{font-size:14px;font-weight:600;}
+.roas-pill{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;margin-top:8px;}
+.pdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:1.25rem;}
+.pdcard{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;}
+.pdname{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ptag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--surface2);color:var(--muted);letter-spacing:.04em;}
+.crow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid var(--border);}
+.crow:last-child{border-bottom:none;padding-bottom:0;}
+.clabel{display:flex;align-items:center;gap:7px;min-width:72px;}
+.cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}.cname{font-size:13px;font-weight:500;}
+.cbw{flex:1;}.cbt{background:var(--surface2);border-radius:4px;height:6px;overflow:hidden;}
+.cbf{height:100%;border-radius:4px;transition:width .5s ease;}
+.cval{min-width:90px;text-align:right;font-size:13px;font-weight:600;}
+.pmtabs{display:flex;gap:4px;background:var(--surface2);border-radius:var(--radius-sm);padding:3px;flex-wrap:wrap;}
+.pmtab{padding:4px 11px;border-radius:5px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:inherit;font-weight:500;transition:all .15s;}
+.pmtab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.formula-box{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:1.25rem;line-height:1.6;}
+.formula-box strong{color:var(--text);}
+.note{font-size:11px;color:var(--muted);margin-bottom:12px;}
+.notice{background:#FAEEDA;border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:#633806;margin-bottom:1.25rem;}
+
+/* AD DETAIL / PRODUCT CREATIVE PAGE */
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center;}
+.filter-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+.fb{padding:4px 13px;border-radius:var(--radius-sm);font-size:12px;cursor:pointer;border:.5px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-weight:500;transition:all .15s;}
+.fb.active{background:var(--surface2);color:var(--text);border-color:rgba(0,0,0,.15);}
+.sort-tabs{display:flex;gap:4px;background:var(--surface2);border-radius:var(--radius-sm);padding:3px;margin-left:auto;}
+.sort-btn{padding:4px 11px;border-radius:5px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:inherit;font-weight:500;transition:all .15s;}
+.sort-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+
+/* Product filter pills */
+.prod-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;}
+.prod-pill{padding:6px 18px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:.5px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;transition:all .15s;}
+
+.ad-table-wrap{overflow-x:auto;}
+.ad-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.ad-tbl th{text-align:left;padding:6px 10px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:.5px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+.ad-tbl th:hover{color:var(--text);}
+.ad-tbl th.sorted{color:var(--text);}
+.ad-tbl th .sort-arrow{margin-left:4px;opacity:.5;}
+.ad-tbl th.sorted .sort-arrow{opacity:1;}
+.ad-tbl td{padding:10px 10px;border-bottom:.5px solid var(--border);vertical-align:middle;}
+.ad-tbl tr:last-child td{border-bottom:none;}
+.ad-tbl tr:hover td{background:var(--surface2);}
+.roas-bar-cell{min-width:120px;}
+.roas-bar-wrap{display:flex;align-items:center;gap:8px;}
+.roas-bar-bg{flex:1;background:var(--surface2);border-radius:4px;height:6px;overflow:hidden;}
+.roas-bar-fill{height:100%;border-radius:4px;}
+.roas-val{font-size:12px;font-weight:600;min-width:40px;}
+.no-data{text-align:center;padding:3rem;color:var(--muted);font-size:14px;}
+.rank-num{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">Meta Ads <span>Dashboard</span></div>
+    <button class="nav-tab active" onclick="goPage('creator',this)">By creator</button>
+    <button class="nav-tab" onclick="goPage('product',this)">By product</button>
+    <button class="nav-tab" onclick="goPage('creative',this)">By creative</button>
+  </div>
+</nav>
+
+<!-- DATE FILTER BAR -->
+<div class="date-bar">
+  <div class="date-bar-inner">
+    <div class="date-mode-tabs">
+      <button class="dmt active" id="dmt-monthly" onclick="setDateMode('monthly',this)">Monthly</button>
+      <button class="dmt" id="dmt-custom" onclick="setDateMode('custom',this)">Custom</button>
+    </div>
+    <div class="date-sep"></div>
+    <!-- Monthly pills -->
+    <div id="monthly-pills" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+      <button class="mpill" onclick="switchMonth('2025-11',this)">Nov 2025</button>
+      <button class="mpill" onclick="switchMonth('2025-12',this)">Dec 2025</button>
+      <button class="mpill" onclick="switchMonth('2026-01',this)">Jan 2026</button>
+      <button class="mpill" onclick="switchMonth('2026-02',this)">Feb 2026</button>
+      <button class="mpill active" onclick="switchMonth('2026-03',this)">Mar 2026</button>
+    </div>
+    <!-- Custom range -->
+    <div id="custom-range" style="display:none;" class="custom-range">
+      <span class="date-label">From</span>
+      <input type="date" class="date-input" id="dateFrom" value="2025-11-14" min="2025-11-14" max="2026-03-23">
+      <span class="date-label">To</span>
+      <input type="date" class="date-input" id="dateTo" value="2026-03-23" min="2025-11-14" max="2026-03-23">
+      <button class="apply-btn" onclick="applyCustomRange()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 1: BY CREATOR -->
+
+<!-- Loading / Error -->
+<div id="loadingBar" style="display:flex;align-items:center;justify-content:center;padding:2rem;gap:12px;color:var(--muted);font-size:14px;">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation:spin 1s linear infinite">
+    <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" stroke-dasharray="25 13" opacity=".6"/>
+  </svg>
+  Google Sheets에서 데이터 불러오는 중...
+</div>
+<div id="loadError" style="display:none;max-width:1200px;margin:1rem auto;padding:12px 1.5rem;background:#FAEEDA;border-radius:8px;font-size:13px;color:#633806;"></div>
+<style>@keyframes spin{{to{{transform:rotate(360deg)}}}}</style>
+
+<div class="pg active" id="pg-creator">
+  <div class="top-bar">
+    <div><h1>Creator performance</h1><div class="top-meta" id="creatorMeta"></div></div>
+    <div class="mtabs" id="mtabs">
+      <button class="tab active" onclick="switchM('clicks',this)">Clicks</button>
+      <button class="tab" onclick="switchM('ctr',this)">CTR</button>
+      <button class="tab" onclick="switchM('cpc',this)">CPC</button>
+    </div>
+  </div>
+  <div id="novNotice" style="display:none" class="notice">Nov 2025: Amazon purchase data not available.</div>
+  <div class="slabel">Overview</div>
+  <div class="pgrid3" id="pcards"></div>
+  <div class="ccard">
+    <div class="ctop">
+      <div class="ctitle" id="trendT">Daily clicks by creator</div>
+      <div class="leg">
+        <div class="li"><span class="ld" style="background:#378ADD"></span>Lina</div>
+        <div class="li"><span class="ld" style="background:#D4537E"></span>Phoebe</div>
+        <div class="li"><span class="ld" style="background:#1D9E75"></span>Sarah</div>
+      </div>
+    </div>
+    <div style="position:relative;width:100%;height:220px;"><canvas id="trendC"></canvas></div>
+  </div>
+  <div class="ccard">
+    <div class="ctop">
+      <div class="ctitle" id="mediaT">Video vs image by creator</div>
+      <div class="leg">
+        <div class="li"><span class="ld" style="background:#888780"></span>Video</div>
+        <div class="li"><span class="ld" style="background:#888780;opacity:.4"></span>Image</div>
+      </div>
+    </div>
+    <div style="position:relative;width:100%;height:200px;"><canvas id="mediaC"></canvas></div>
+  </div>
+</div>
+
+<!-- PAGE 2: BY PRODUCT -->
+<div class="pg" id="pg-product">
+  <div class="top-bar">
+    <div><h1>Product performance</h1><div class="top-meta" id="productMeta"></div></div>
+    <div class="pmtabs" id="pmtabs">
+      <button class="pmtab active" onclick="switchPM('clicks',this)">Clicks</button>
+      <button class="pmtab" onclick="switchPM('ctr',this)">CTR</button>
+      <button class="pmtab" onclick="switchPM('cpc',this)">CPC</button>
+      <button class="pmtab" onclick="switchPM('purchases',this)">Purchases</button>
+      <button class="pmtab" onclick="switchPM('roas',this)">ROAS</button>
+      <button class="pmtab" onclick="switchPM('cpa',this)">CPA</button>
+    </div>
+  </div>
+  <div class="formula-box"><strong>ROAS</strong> = 한화매출 × 1.5 ÷ 소재별 Meta 광고비 &nbsp;·&nbsp; <strong>CPA</strong> = 소재별 Meta 광고비 ÷ Amazon purchases</div>
+  <div class="slabel">Product summary</div>
+  <div class="psgrid" id="psgrid"></div>
+  <div class="ccard">
+    <div class="ctop">
+      <div class="ctitle" id="prodChartT">Clicks by product &amp; creator</div>
+      <div class="leg">
+        <div class="li"><span class="ld" style="background:#378ADD"></span>Lina</div>
+        <div class="li"><span class="ld" style="background:#D4537E"></span>Phoebe</div>
+        <div class="li"><span class="ld" style="background:#1D9E75"></span>Sarah</div>
+      </div>
+    </div>
+    <div style="position:relative;width:100%;height:260px;"><canvas id="prodC"></canvas></div>
+  </div>
+  <div class="slabel">Creator breakdown per product</div>
+  <div class="pdgrid" id="pdgrid"></div>
+  <div class="ccard">
+    <div class="ctitle" style="margin-bottom:4px;">Full detail table</div>
+    <div class="note">ROAS = 한화매출 × 1.5 ÷ 소재별 광고비 &nbsp;·&nbsp; — = no Amazon data</div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th>Product</th><th>Creator</th>
+        <th style="text-align:right">Clicks</th><th style="text-align:right">Spend</th>
+        <th style="text-align:right">CTR</th><th style="text-align:right">CPC</th>
+        <th style="text-align:right">Purchases</th><th style="text-align:right">Revenue</th>
+        <th style="text-align:right">ROAS</th><th style="text-align:right">CPA</th>
+      </tr></thead>
+      <tbody id="prodTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- PAGE 3: BY CREATIVE -->
+<div class="pg" id="pg-creative">
+  <div class="top-bar">
+    <div><h1>Creative performance</h1><div class="top-meta" id="creativeMeta"></div></div>
+  </div>
+  <!-- Product filter pills -->
+  <div class="slabel">Filter by product</div>
+  <div class="prod-pills" id="prodPills"></div>
+  <!-- Sub-filters + sort -->
+  <div class="filter-bar">
+    <span class="filter-label">Creator</span>
+    <button class="fb active" onclick="setCF('person','All',this)">All</button>
+    <button class="fb" onclick="setCF('person','Lina',this)">Lina</button>
+    <button class="fb" onclick="setCF('person','Phoebe',this)">Phoebe</button>
+    <button class="fb" onclick="setCF('person','Sarah',this)">Sarah</button>
+    <span class="filter-label" style="margin-left:8px">Media</span>
+    <button class="fb active" onclick="setCF('media','All',this)">All</button>
+    <button class="fb" onclick="setCF('media','vdo',this)">Video</button>
+    <button class="fb" onclick="setCF('media','img',this)">Image</button>
+    <div class="sort-tabs">
+      <button class="sort-btn active" onclick="setCS('clicks',this)">Clicks</button>
+      <button class="sort-btn" onclick="setCS('ctr',this)">CTR</button>
+      <button class="sort-btn" onclick="setCS('roas',this)">ROAS</button>
+      <button class="sort-btn" onclick="setCS('purchases',this)">Purchases</button>
+    </div>
+  </div>
+  <!-- Creative table -->
+  <div class="ccard" style="padding:0;overflow:hidden;">
+    <div class="ad-table-wrap">
+      <table class="ad-tbl" id="creativeTable">
+        <thead><tr>
+          <th style="width:36px;padding-left:14px">#</th>
+          <th onclick="setCS('ad_name',null)">Ad name <span class="sort-arrow">↕</span></th>
+          <th>Creator</th>
+          <th>Media</th>
+          <th onclick="setCS('clicks',null)" class="sorted">Clicks <span class="sort-arrow">↓</span></th>
+          <th onclick="setCS('ctr',null)">CTR <span class="sort-arrow">↕</span></th>
+          <th onclick="setCS('purchases',null)">Purchases <span class="sort-arrow">↕</span></th>
+          <th class="roas-bar-cell" onclick="setCS('roas',null)">ROAS <span class="sort-arrow">↕</span></th>
+        </tr></thead>
+        <tbody id="creativeTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL='https://script.google.com/macros/s/AKfycbx_-aj6U_5eLs0vVI8IUHmrUmEPW8kY7zVWKpb8S3bhMphABRnTH91Y2QT9PBWEXgKr/exec';
+const AMZ_URL=API_URL+'?sheet='+encodeURIComponent('아마존 raw');
+const AMZ_HIST_URL=API_URL+'?sheet='+encodeURIComponent('아마존 raw_hist');
+const META_URL=API_URL+'?sheet='+encodeURIComponent('메타 소재별_raw');
+const META_HIST_URL=API_URL+'?sheet='+encodeURIComponent('메타 raw_hist');
+const C={Lina:'#378ADD',Phoebe:'#D4537E',Sarah:'#1D9E75'};
+const CB={Lina:'#E6F1FB',Phoebe:'#FBEAF0',Sarah:'#E1F5EE'};
+const CT={Lina:'#0C447C',Phoebe:'#72243E',Sarah:'#085041'};
+const PC={'GPG':'#7F77DD','PCO':'#1D9E75','BCA/BPD':'#D85A30','PCM':'#BA7517'};
+const PB={'GPG':'#EEEDFE','PCO':'#E1F5EE','BCA/BPD':'#FAECE7','PCM':'#FAEEDA'};
+const PT={'GPG':'#3C3489','PCO':'#085041','BCA/BPD':'#993C1D','PCM':'#633806'};
+const PEOPLE=['Lina','Sarah','Phoebe'];
+const MONTH_LABELS={'2025-11':'Nov 2025','2025-12':'Dec 2025','2026-01':'Jan 2026','2026-02':'Feb 2026','2026-03':'Mar 2026'};
+let RAW={meta:[],amz:[]};
+let curPage='creator',cM='clicks',cPM='clicks';
+let dateMode='monthly',curMonth='2026-03',customFrom='',customTo='';
+let cFilters={person:'All',media:'All',product:'All'};
+let cSort='clicks',cSortDir=-1;
+let tC,mC,pC;
+const f=n=>Math.round(n).toLocaleString('ko-KR');
+const fd=(n,d=2)=>Number(n).toFixed(d);
+const fRoas=r=>r>0?(r*100).toFixed(1)+'%':'—';
+function rcol(r){return r>=.5?'#0F6E56':r>=.1?'#3B6D11':r>0?'#BA7517':'var(--muted)';}
+function rbg(r){return r>=.5?'#E1F5EE':r>=.1?'#EAF3DE':r>0?'#FAEEDA':'var(--surface2)';}
+
+function parseCSV(text){
+  const lines=text.split('\n').filter(l=>l.trim());
+  const headers=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line=>{
+    const vals=[];let cur='',inQ=false;
+    for(const ch of line){
+      if(ch=='"')inQ=!inQ;
+      else if(ch==','&&!inQ){vals.push(cur);cur='';}
+      else cur+=ch;
+    }
+    vals.push(cur);
+    const obj={};headers.forEach((h,i)=>obj[h]=(vals[i]||'').trim());
+    return obj;
+  });
+}
+
+function parsePerson(name){
+  if(!name)return null;
+  const parts=name.split('_');
+  if(parts[0].toLowerCase()==='stella')return null;
+  if(PEOPLE.includes(parts[0]))return parts[0];
+  if(parts[parts.length-1].toLowerCase()==='stella')return null;
+  for(const p of PEOPLE){if(parts[parts.length-1].toLowerCase()===p.toLowerCase())return p;}
+  for(const p of PEOPLE){if(parts.includes(p))return p;}
+  return null;
+}
+function parseProduct(name){
+  if(!name)return null;
+  const parts=name.split('_');
+  for(const p of ['GPG','PCO','BCA','PCM','BPD','PCF']){
+    if(parts.includes(p))return['BCA','BPD','PCF'].includes(p)?'BCA/BPD':p;
+  }
+  if(['GPG','PCO','BCA','PCM','BPD'].includes(parts[0]))return parts[0];
+  return null;
+}
+function parseMedia(name){
+  if(!name)return null;
+  const parts=name.split('_');
+  return parts.includes('vdo')?'vdo':parts.includes('img')?'img':null;
+}
+function parseAdName(name){
+  if(!name)return null;
+  const parts=name.split('_');
+  for(let i=0;i<parts.length;i++){
+    if((parts[i]==='vdo'||parts[i]==='img')&&i+1<parts.length)return parts[i+1];
+  }
+  return null;
+}
+
+async function loadData(){
+  showLoading(true);
+  try{
+    // Apps Script returns JSON array-of-arrays: [[headers...], [row1...], ...]
+    function arrToObjs(json){
+      const rows=JSON.parse(json);
+      // Find header row (first row with 소재명 or 일자)
+      let hIdx=0;
+      for(let i=0;i<Math.min(5,rows.length);i++){
+        if(rows[i].some(c=>String(c).includes('소재명')||String(c).includes('일자'))){hIdx=i;break;}
+      }
+      const headers=rows[hIdx].map(h=>String(h).trim());
+      return rows.slice(hIdx+1).map(row=>{
+        const obj={};
+        headers.forEach((h,i)=>obj[h]=String(row[i]||'').trim());
+        return obj;
+      });
+    }
+
+    const fetchOpts={redirect:'follow'};
+    const [mr,mhr,ar,ahr]=await Promise.all([
+      fetch(META_URL,fetchOpts),
+      fetch(META_HIST_URL,fetchOpts),
+      fetch(AMZ_URL,fetchOpts),
+      fetch(AMZ_HIST_URL,fetchOpts)
+    ]);
+    const [mt,mht,at,aht]=await Promise.all([mr.text(),mhr.text(),ar.text(),ahr.text()]);
+
+    function parseNum(v){return parseFloat(String(v||'0').replace(/,/g,'').replace(/-/g,'0'))||0;}
+
+    // Parse META
+    const metaRows=[...arrToObjs(mt), ...arrToObjs(mht)];
+    RAW.meta=metaRows.map(r=>{
+      const keys=Object.keys(r);
+      const dateKey=keys.find(k=>k.includes('일자')||k.includes('날짜'))||keys[0];
+      const nameKey=keys.find(k=>k.includes('소재명'))||keys[1]||'';
+      const clickKey=keys.find(k=>k.includes('링크클릭'))||'';
+      const spendKey=keys.find(k=>k.includes('광고비'))||'';
+      const impKey=keys.find(k=>k.includes('노출'))||'';
+      const date=String(r[dateKey]||'').trim();
+      if(!date.match(/\d{4}-\d{2}-\d{2}/))return null;
+      const name=String(r[nameKey]||'');
+      const person=parsePerson(name);
+      if(!person)return null;
+      return{date,month:date.slice(0,7),person,
+        product:parseProduct(name),media:parseMedia(name),ad_name:parseAdName(name),
+        clicks:parseNum(r[clickKey]),spend:parseNum(r[spendKey]),impressions:parseNum(r[impKey])};
+    }).filter(Boolean);
+
+    RAW.meta = Object.values(
+      RAW.meta.reduce((acc, r) => {
+        const key = `${r.date}|${r.person}|${r.product}|${r.media}|${r.ad_name}|${r.clicks}|${r.spend}|${r.impressions}`;
+        acc[key] = r;
+        return acc;
+      }, {})
+    );
+
+    // Parse AMZ
+    const amzRows=[...arrToObjs(at), ...arrToObjs(aht)];
+    RAW.amz=amzRows.map(r=>{
+      const keys=Object.keys(r);
+      const dateKey=keys.find(k=>k.includes('일자')||k.includes('날짜'))||keys[0];
+      const nameKey=keys.find(k=>k.includes('소재명'))||keys[1]||'';
+      const purchKey=keys.find(k=>k.includes('구매')||k.toLowerCase().includes('purchase'))||'';
+      const revKey=keys.find(k=>k.includes('한화매출'))||'';
+      const date=String(r[dateKey]||'').trim();
+      if(!date.match(/\d{4}-\d{2}-\d{2}/))return null;
+      const name=String(r[nameKey]||'');
+      const person=parsePerson(name);
+      if(!person)return null;
+      return{date,month:date.slice(0,7),person,
+        product:parseProduct(name),ad_name:parseAdName(name),
+        purchases:parseNum(r[purchKey]),revenue_krw:parseNum(r[revKey])};
+    }).filter(Boolean);
+
+    RAW.amz = Object.values(
+      RAW.amz.reduce((acc, r) => {
+        const key = `${r.date}|${r.person}|${r.product}|${r.ad_name}|${r.purchases}|${r.revenue_krw}`;
+        acc[key] = r;
+        return acc;
+      }, {})
+    );
+
+    const allDates=RAW.meta.map(r=>r.date).filter(Boolean).sort();
+    if(allDates.length){
+      customFrom=allDates[0];customTo=allDates[allDates.length-1];
+      document.getElementById('dateFrom').value=customFrom;
+      document.getElementById('dateTo').value=customTo;
+    }
+    const months=[...new Set(RAW.meta.map(r=>r.month).filter(Boolean))].sort();
+    curMonth=months[months.length-1]||'2026-03';
+    renderMonthPills(months);
+    showLoading(false);
+    refresh();
+  }catch(e){
+    showLoading(false);
+    const el=document.getElementById('loadError');
+    el.style.display='block';
+    el.textContent='데이터 로드 실패: '+e.message;
+    console.error(e);
+  }
+}
+
+function showLoading(show){
+  document.getElementById('loadingBar').style.display=show?'flex':'none';
+}
+
+function renderMonthPills(months){
+  const container=document.getElementById('monthly-pills');
+  container.innerHTML=months.map(m=>{
+    const lbl=MONTH_LABELS[m]||m;
+    const active=m===curMonth?' active':'';
+    return '<button class="mpill'+active+'" onclick="switchMonth(\'' + m + '\',this)">'+lbl+'</button>';
+  }).join('');
+}
+
+function grp(arr,keys,vals){
+  const map={};
+  for(const r of arr){
+    const ck=keys.map(k=>r[k]).join('|||');
+    if(!map[ck]){map[ck]={};keys.forEach(k=>map[ck][k]=r[k]);vals.forEach(v=>map[ck][v]=0);}
+    vals.forEach(v=>map[ck][v]+=(r[v]||0));
+  }
+  return Object.values(map);
+}
+
+function computeData(from,to){
+  const meta=RAW.meta.filter(r=>r.date>=from&&r.date<=to);
+  const amz=RAW.amz.filter(r=>r.date>=from&&r.date<=to);
+  const ctr_=(m)=>m.impressions>0?+(m.clicks/m.impressions*100).toFixed(2):0;
+  const cpc_=(m)=>m.clicks>0?Math.round(m.spend/m.clicks):0;
+  const roas_=(sp,rev)=>(sp>0&&rev>0)?+((rev*1.5)/sp).toFixed(4):0;
+
+  const ps_m=grp(meta,['person'],['clicks','spend','impressions']);
+  const ps_a=grp(amz,['person'],['purchases','revenue_krw']);
+  const ps=ps_m.map(m=>{
+    const a=ps_a.find(x=>x.person===m.person)||{purchases:0,revenue_krw:0};
+    return Object.assign({},m,{ctr:ctr_(m),cpc:cpc_(m),purchases:a.purchases,revenue_krw:a.revenue_krw,roas:roas_(m.spend,a.revenue_krw)});
+  });
+
+  const pm_m=grp(meta,['person','media'],['clicks','spend','impressions']);
+  const pm=pm_m.map(m=>Object.assign({},m,{ctr:ctr_(m),cpc:cpc_(m)}));
+
+  const daily_m=grp(meta,['date','person'],['clicks','spend','impressions']);
+  const daily=daily_m.map(m=>({date:m.date,p:m.person,clicks:m.clicks,spend:m.spend,ctr:ctr_(m),cpc:cpc_(m)}));
+
+  const pp_m=grp(meta,['product','person'],['clicks','spend','impressions']);
+  const pp_a=grp(amz,['product','person'],['purchases','revenue_krw']);
+  const pp=pp_m.filter(m=>m.product).map(m=>{
+    const a=pp_a.find(x=>x.product===m.product&&x.person===m.person)||{purchases:0,revenue_krw:0};
+    const roas=roas_(m.spend,a.revenue_krw);
+    return Object.assign({},m,{ctr:ctr_(m),cpc:cpc_(m),purchases:a.purchases,revenue_krw:a.revenue_krw,roas,cpa:a.purchases>0?Math.round(m.spend/a.purchases):0});
+  });
+
+  const psum_m=grp(meta,['product'],['clicks','spend','impressions']);
+  const psum_a=grp(amz,['product'],['purchases','revenue_krw']);
+  const psum=psum_m.filter(m=>m.product).map(m=>{
+    const a=psum_a.find(x=>x.product===m.product)||{purchases:0,revenue_krw:0};
+    const roas=roas_(m.spend,a.revenue_krw);
+    return Object.assign({},m,{ctr:ctr_(m),cpc:cpc_(m),purchases:a.purchases,revenue_krw:a.revenue_krw,roas,cpa:a.purchases>0?Math.round(m.spend/a.purchases):0});
+  });
+
+  const ads_m=grp(meta,['ad_name','person','product','media'],['clicks','spend','impressions']);
+  const ads_a=grp(amz,['ad_name','person','product'],['purchases','revenue_krw']);
+  const ads=ads_m.filter(m=>m.ad_name&&m.ad_name!='null').map(m=>{
+    const a=ads_a.find(x=>x.ad_name===m.ad_name&&x.person===m.person&&x.product===m.product)||{purchases:0,revenue_krw:0};
+    const roas=roas_(m.spend,a.revenue_krw);
+    return Object.assign({},m,{ctr:ctr_(m),cpc:cpc_(m),purchases:a.purchases,revenue_krw:a.revenue_krw,roas,cpa:a.purchases>0?Math.round(m.spend/a.purchases):0});
+  }).sort((a,b)=>b.clicks-a.clicks).slice(0,100);
+
+  return{ps,pm,daily,pp,psum,ads};
+}
+
+function getDateRange(){
+  if(dateMode==='monthly')return{from:curMonth+'-01',to:curMonth+'-31'};
+  return{from:customFrom,to:customTo};
+}
+function D(){const{from,to}=getDateRange();return computeData(from,to);}
+function getDateLabel(){return dateMode==='monthly'?(MONTH_LABELS[curMonth]||curMonth):customFrom+' ~ '+customTo;}
+function isNoAmz(){const{to}=getDateRange();return to<'2025-12-01';}
+
+function updateMeta(){
+  const lbl=getDateLabel(),noAmz=isNoAmz();
+  ['creatorMeta','productMeta','creativeMeta'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=lbl+(noAmz?' · Meta only':' · Meta + Amazon');
+  });
+  document.getElementById('novNotice').style.display=noAmz?'block':'none';
+}
+
+function refresh(){
+  updateMeta();
+  if(curPage==='creator'){renderPCards();renderTrend();renderMedia();}
+  else if(curPage==='product')renderProdPage();
+  else if(curPage==='creative'){renderProdPills();renderCreativeTable();}
+}
+
+function setDateMode(mode,btn){
+  dateMode=mode;
+  document.querySelectorAll('.dmt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('monthly-pills').style.display=mode==='monthly'?'flex':'none';
+  document.getElementById('custom-range').style.display=mode==='custom'?'flex':'none';
+  if(mode==='monthly')refresh();
+}
+function switchMonth(m,btn){
+  curMonth=m;
+  document.querySelectorAll('.mpill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  refresh();
+}
+function applyCustomRange(){
+  customFrom=document.getElementById('dateFrom').value;
+  customTo=document.getElementById('dateTo').value;
+  if(customFrom>customTo){alert('시작일이 종료일보다 늦을 수 없어요!');return;}
+  refresh();
+}
+function goPage(pg,btn){
+  curPage=pg;
+  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('pg-'+pg).classList.add('active');
+  btn.classList.add('active');
+  if(pg==='product')renderProdPage();
+  else if(pg==='creative'){renderProdPills();renderCreativeTable();}
+}
+
+function renderPCards(){
+  const ps=D().ps||[];
+  const sorted={
+    clicks:[...ps].sort((a,b)=>b.clicks-a.clicks).map(x=>x.person),
+    ctr:[...ps].sort((a,b)=>b.ctr-a.ctr).map(x=>x.person),
+    cpc:[...ps].sort((a,b)=>a.cpc-b.cpc).map(x=>x.person)
+  };
+  const rl={clicks:'clicks',ctr:'CTR',cpc:'CPC (lower)'};
+  const noAmz=isNoAmz();
+  document.getElementById('pcards').innerHTML=ps.map(p=>{
+    const rank=sorted[cM].indexOf(p.person)+1;
+    const pm=D().pm||[];
+    const vdo=pm.find(m=>m.person===p.person&&m.media==='vdo');
+    const img=pm.find(m=>m.person===p.person&&m.media==='img');
+    const tc=(vdo?.clicks||0)+(img?.clicks||0);
+    const vp=tc>0?Math.round((vdo?.clicks||0)/tc*100):0;
+    return '<div class="pcard">'+
+      '<div class="ph"><div class="av" style="background:'+CB[p.person]+';color:'+CT[p.person]+'">'+p.person[0]+'</div>'+
+      '<div><div class="pname">'+p.person+'</div><div class="prank">Rank #'+rank+' by '+rl[cM]+'</div></div></div>'+
+      '<div class="srow">'+
+      '<div class="st"><div class="stl">Clicks</div><div class="stv">'+f(p.clicks)+'</div></div>'+
+      '<div class="st"><div class="stl">CTR</div><div class="stv">'+fd(p.ctr)+'%</div></div>'+
+      '<div class="st"><div class="stl">CPC</div><div class="stv">₩'+f(p.cpc)+'</div></div>'+
+      '</div><div class="srow">'+
+      '<div class="st"><div class="stl">Spend</div><div class="stv sm">₩'+f(p.spend)+'</div></div>'+
+      '<div class="st"><div class="stl">Purchases</div><div class="stv'+(p.purchases>0?' good':'')+'">'+(noAmz?'—':p.purchases)+'</div></div>'+
+      '<div class="st"><div class="stl">Revenue</div><div class="stv sm">'+(!noAmz&&p.revenue_krw>0?'₩'+f(p.revenue_krw):'—')+'</div></div>'+
+      '</div>'+
+      '<div class="mlabels"><span>Video '+vp+'%</span><span>Image '+(100-vp)+'%</span></div>'+
+      '<div class="btrack"><div class="bfill" style="width:'+vp+'%;background:'+C[p.person]+'"></div></div>'+
+      '</div>';
+  }).join('');
+}
+
+function renderTrend(){
+  const d=D().daily||[];
+  const labels={clicks:'Daily clicks',ctr:'Daily CTR (%)',cpc:'Daily CPC (₩)'};
+  document.getElementById('trendT').textContent=labels[cM]+' by creator';
+  const dates=[...new Set(d.map(r=>r.date))].sort();
+  const ds=function(person){return{label:person,
+    data:dates.map(dt=>{const r=d.find(x=>x.date===dt&&x.p===person);return r?r[cM]:null;}),
+    borderColor:C[person],backgroundColor:C[person]+'22',
+    borderWidth:2,pointRadius:2,pointHoverRadius:5,spanGaps:true,tension:.3,fill:false};};
+  const ctx=document.getElementById('trendC').getContext('2d');
+  if(tC)tC.destroy();
+  tC=new Chart(ctx,{
+    type:'line',
+    data:{labels:dates,datasets:['Lina','Phoebe','Sarah'].map(ds)},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{font:{size:11},color:'#888',maxRotation:45,autoSkip:true,maxTicksLimit:18},grid:{display:false}},
+        y:{ticks:{font:{size:11},color:'#888'},grid:{color:'rgba(128,128,128,.1)'}}
+      }
+    }
+  });
+}
+
+function renderMedia(){
+  const pm=D().pm||[];
+  const pp=['Lina','Phoebe','Sarah'];
+  const gv=function(p,m){const r=pm.find(x=>x.person===p&&x.media===m);return r?r[cM]:0;};
+  const mlabels={clicks:'Clicks',ctr:'CTR (%)',cpc:'CPC (₩)'};
+  document.getElementById('mediaT').textContent='Video vs image — '+mlabels[cM]+' by creator';
+  const ctx=document.getElementById('mediaC').getContext('2d');
+  if(mC)mC.destroy();
+  mC=new Chart(ctx,{
+    type:'bar',
+    data:{labels:pp,datasets:[
+      {label:'Video',data:pp.map(p=>gv(p,'vdo')),backgroundColor:pp.map(p=>C[p]),borderRadius:4,barPercentage:.42},
+      {label:'Image',data:pp.map(p=>gv(p,'img')),backgroundColor:pp.map(p=>C[p]+'55'),borderRadius:4,barPercentage:.42}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{font:{size:12},color:'#888'},grid:{display:false}},
+        y:{ticks:{font:{size:11},color:'#888'},grid:{color:'rgba(128,128,128,.1)'}}
+      }
+    }
+  });
+}
+
+function switchM(m,btn){
+  cM=m;document.querySelectorAll('#mtabs .tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  renderPCards();renderTrend();renderMedia();
+}
+
+function renderProdPage(){renderPSum();renderProdChart();renderPDGrid();renderProdTable();}
+
+function renderPSum(){
+  const ps=D().psum||[];
+  document.getElementById('psgrid').innerHTML=ps.map(p=>{
+    return '<div class="pscard">'+
+      '<div class="psname" style="color:'+(PC[p.product]||'var(--text)')+'">'+(p.product||'—')+'</div>'+
+      '<div class="pml">Clicks</div><div class="pmv">'+f(p.clicks)+'</div>'+
+      '<div class="pml">Spend</div><div class="pmv" style="font-size:12px">₩'+f(p.spend)+'</div>'+
+      '<div class="pml">Purchases</div><div class="pmv" style="color:'+(p.purchases>0?'#0F6E56':'var(--muted)')+'">'+(p.purchases||'—')+'</div>'+
+      '<div class="roas-pill" style="background:'+rbg(p.roas)+';color:'+rcol(p.roas)+'">ROAS '+fRoas(p.roas)+'</div>'+
+      '</div>';
+  }).join('');
+}
+
+function renderProdChart(){
+  const m=cPM;
+  const lbls={clicks:'Clicks',ctr:'CTR (%)',cpc:'CPC (₩)',purchases:'Purchases',roas:'ROAS',cpa:'CPA (₩)'};
+  document.getElementById('prodChartT').textContent=lbls[m]+' by product & creator';
+  const pp=D().pp||[];
+  const prods=[...new Set(pp.map(r=>r.product))];
+  const persons=['Lina','Phoebe','Sarah'];
+  const ctx=document.getElementById('prodC').getContext('2d');
+  if(pC)pC.destroy();
+  pC=new Chart(ctx,{
+    type:'bar',
+    data:{labels:prods,datasets:persons.map(function(person){return{
+      label:person,
+      data:prods.map(function(prod){const r=pp.find(x=>x.product===prod&&x.person===person);return r?r[m]||0:0;}),
+      backgroundColor:C[person],borderRadius:4,barPercentage:.7
+    };})},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{font:{size:12},color:'#888'},grid:{display:false}},
+        y:{ticks:{font:{size:11},color:'#888',callback:m==='roas'?function(v){return(v*100).toFixed(0)+'%';}:undefined},grid:{color:'rgba(128,128,128,.1)'}}
+      }
+    }
+  });
+}
+
+function renderPDGrid(){
+  const m=cPM;
+  const pp=D().pp||[];
+  const prods=[...new Set(pp.map(r=>r.product))];
+  const mLabels={clicks:'CLICKS',ctr:'CTR',cpc:'CPC',purchases:'PURCHASES',roas:'ROAS',cpa:'CPA'};
+  document.getElementById('pdgrid').innerHTML=prods.map(function(prod){
+    const rows=pp.filter(r=>r.product===prod);
+    const vals=rows.map(r=>r[m]).filter(v=>v>0);
+    const mx=vals.length?Math.max(...vals):1;
+    let html='<div class="pdcard"><div class="pdname"><span style="color:'+(PC[prod]||'var(--text)')+'">'+prod+'</span>'+
+      '<span class="ptag">'+mLabels[m]+'</span></div>';
+    rows.sort((a,b)=>b[m]-a[m]).forEach(function(r){
+      const val=r[m]||0;
+      const pct=mx>0&&val>0?Math.round(val/mx*100):0;
+      let dv=m==='clicks'?f(val):m==='ctr'?fd(val)+'%':m==='purchases'?(val>0?val+'건':'—'):m==='roas'?fRoas(val):(val>0?'₩'+f(val):'—');
+      html+='<div class="crow">'+
+        '<div class="clabel"><span class="cdot" style="background:'+C[r.person]+'"></span><span class="cname">'+r.person+'</span></div>'+
+        '<div class="cbw"><div class="cbt"><div class="cbf" style="width:'+pct+'%;background:'+C[r.person]+'"></div></div></div>'+
+        '<div class="cval" style="color:'+(m==='roas'?rcol(val):'var(--text)')+'">'+dv+'</div>'+
+        '</div>';
+    });
+    html+='</div>';
+    return html;
+  }).join('');
+}
+
+function renderProdTable(){
+  const pp=[...D().pp||[]].sort((a,b)=>b.clicks-a.clicks);
+  document.getElementById('prodTbody').innerHTML=pp.map(r=>{
+    return '<tr>'+
+      '<td><span class="bdg" style="background:'+(PB[r.product]||'var(--surface2)')+';color:'+(PT[r.product]||'var(--muted)')+'">'+(r.product||'—')+'</span></td>'+
+      '<td><span class="pp" style="background:'+CB[r.person]+';color:'+CT[r.person]+'">'+r.person+'</span></td>'+
+      '<td style="text-align:right">'+f(r.clicks)+'</td>'+
+      '<td style="text-align:right">₩'+f(r.spend)+'</td>'+
+      '<td style="text-align:right">'+fd(r.ctr)+'%</td>'+
+      '<td style="text-align:right">₩'+fd(r.cpc)+'</td>'+
+      '<td style="text-align:right;font-weight:600;color:'+(r.purchases>0?'#0F6E56':'var(--muted)')+'">'+(r.purchases>0?r.purchases:'—')+'</td>'+
+      '<td style="text-align:right">'+(r.revenue_krw>0?'₩'+f(r.revenue_krw):'—')+'</td>'+
+      '<td style="text-align:right;font-weight:600;color:'+rcol(r.roas)+'">'+fRoas(r.roas)+'</td>'+
+      '<td style="text-align:right">'+(r.purchases>0?'₩'+f(r.cpa):'—')+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+function switchPM(m,btn){
+  cPM=m;document.querySelectorAll('#pmtabs .pmtab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  renderProdChart();renderPDGrid();
+}
+
+function renderProdPills(){
+  const ads=D().ads||[];
+  const prods=['All',...new Set(ads.map(a=>a.product).filter(Boolean))];
+  document.getElementById('prodPills').innerHTML=prods.map(function(p){
+    const isActive=cFilters.product===p;
+    const bg=isActive?(p==='All'?'var(--surface2)':(PB[p]||'var(--surface2)')):'transparent';
+    const tc=isActive?(p==='All'?'var(--text)':(PT[p]||'var(--text)')):'var(--muted)';
+    const bc=isActive?(p==='All'?'var(--text)':(PC[p]||'var(--text)')):'var(--border)';
+    return '<button class="prod-pill'+(isActive?' active':'')+'" style="background:'+bg+';color:'+tc+';border-color:'+bc+'" onclick="setProdFilter(\'' + p + '\',this)">'+p+'</button>';
+  }).join('');
+}
+
+function setProdFilter(p,btn){cFilters.product=p;renderProdPills();renderCreativeTable();}
+
+function setCF(key,val,btn){
+  cFilters[key]=val;
+  const group=key==='person'?['All','Lina','Phoebe','Sarah']:['All','vdo','img'];
+  document.querySelectorAll('.filter-bar .fb').forEach(function(b){
+    const txt=b.textContent.trim();
+    const inGroup=group.some(g=>g===txt||(g==='vdo'&&txt==='Video')||(g==='img'&&txt==='Image'));
+    if(inGroup)b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  renderCreativeTable();
+}
+
+function setCS(s,btn){
+  if(s===cSort)cSortDir*=-1;else{cSort=s;cSortDir=-1;}
+  if(btn){document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+  renderCreativeTable();
+}
+
+function renderCreativeTable(){
+  let ads=[...(D().ads||[])];
+  if(cFilters.product!=='All')ads=ads.filter(a=>a.product===cFilters.product);
+  if(cFilters.person!=='All')ads=ads.filter(a=>a.person===cFilters.person);
+  if(cFilters.media!=='All')ads=ads.filter(a=>a.media===cFilters.media);
+  ads.sort(function(a,b){
+    const av=a[cSort]||0,bv=b[cSort]||0;
+    if(typeof av==='string')return cSortDir*av.localeCompare(bv);
+    return cSortDir*(av-bv);
+  });
+  if(!ads.length){
+    document.getElementById('creativeTbody').innerHTML='<tr><td colspan="8" class="no-data">해당 조건의 소재가 없어요.</td></tr>';
+    return;
+  }
+  const maxRoas=Math.max(...ads.map(a=>a.roas||0),0.001);
+  const rb=['#B5D4F4','#D3D1C7','#FAC775'],rt=['#0C447C','#444441','#633806'];
+  document.getElementById('creativeTbody').innerHTML=ads.map(function(a,i){
+    const roasPct=maxRoas>0?Math.round((a.roas||0)/maxRoas*100):0;
+    return '<tr>'+
+      '<td style="padding-left:14px"><span class="rank-num" style="background:'+(i<3?rb[i]:'var(--surface2)')+';color:'+(i<3?rt[i]:'var(--muted)')+'">'+(i+1)+'</span></td>'+
+      '<td style="font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis" title="'+(a.ad_name||'')+'">'+(a.ad_name||'—')+'</td>'+
+      '<td><span class="pp" style="background:'+(CB[a.person]||'var(--surface2)')+';color:'+(CT[a.person]||'var(--muted)')+'">'+a.person+'</span></td>'+
+      '<td><span class="bdg '+(a.media==='vdo'?'bvdo':'bimg')+'">'+(a.media==='vdo'?'Video':'Image')+'</span></td>'+
+      '<td style="font-weight:600">'+f(a.clicks)+'</td>'+
+      '<td>'+fd(a.ctr)+'%</td>'+
+      '<td style="font-weight:600;color:'+(a.purchases>0?'#0F6E56':'var(--muted)')+'">'+(a.purchases>0?a.purchases+'건':'—')+'</td>'+
+      '<td class="roas-bar-cell">'+
+        '<div class="roas-bar-wrap">'+
+        '<div class="roas-bar-bg"><div class="roas-bar-fill" style="width:'+roasPct+'%;background:'+rcol(a.roas)+'"></div></div>'+
+        '<span class="roas-val" style="color:'+rcol(a.roas)+'">'+fRoas(a.roas)+'</span>'+
+        '</div></td>'+
+      '</tr>';
+  }).join('');
+}
+
+loadData();
+</script>
+</body>
+</html>
